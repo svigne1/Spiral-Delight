@@ -7,7 +7,7 @@ The reason the gameplay in Spiral-Delight is different from Candy-Crush comes fr
 Hence the gems so placed don't form rows and columns like in the case of Candy-Crush, instead they form concentric rings.
 As a result, the matches are not calculated along X and Y axis but along the radius and circumference of the board - The circle that contains all the gameObjects (gems) in the scene.
 
-The gameplay doesn't offer the ability to swap gems, but instead offers the ability to rotate the individual rings.
+The gameplay doesn't offer the ability to swap gems, but instead offers the ability to rotate individual rings.
 Player is expected to match all gems and complete the game without any single gem remaining on the board.
 
 # Current State
@@ -16,7 +16,7 @@ Player is expected to match all gems and complete the game without any single ge
 * Every gem has 4 box colliders attached to it.
 
 # ToDo
-* Since new gems are not populated into the scene during gameplay. There is a decent chance that the player may find himself in a stalemate situation often times where no moves are availabe to finish the game. Need to come up with a solution for this.
+* Since new gems are not populated into the scene during gameplay. There is a decent chance that the player may find himself in a stalemate situation often times where valid moves are no longer available to complete the game. Need to come up with a solution for this.
 * Try to avoid prepopulating the board with matches at the start of the game.
 * Identifying Matches and disappearing them.
 * Enabling rotation to the rings. Rotations cannot be continuous. It will destroy the ability to match gems.Hence they need to be discrete rotations.

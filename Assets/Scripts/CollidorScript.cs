@@ -6,21 +6,20 @@ public class CollidorScript : MonoBehaviour {
 	public int side;
 	public GemScript p;
 	public GameObject handsup;
-	// Use this for initialization
+
 	void OnTriggerEnter (Collider o) {
-//		p.addNeigbour(side,o);
-		handsup = getParent(o.gameObject);
-		print ("enter");
+		// Ignoring the collidor on Parent and other parts.
+		if(o.tag == "Collidor")
+			handsup = getParent(o.gameObject);
 		
 	}
 	void OnTriggerExit (Collider o) {
-		//		p.addNeigbour(side,o);
 		handsup = null;
-		print ("exit");
+//		print ("exit");
 	}
 
 	GameObject getParent(GameObject o ){
-		return o.GetComponent<Transform> ().parent.gameObject;
+		return o.transform.parent.gameObject;
 	}
 	
 	// Update is called once per frame
