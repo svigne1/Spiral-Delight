@@ -1,10 +1,10 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GemScript.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/CollidorScript.cs">
     <Files>
-      <File FileName="Assets/Scripts/CollidorScript.cs" Line="10" Column="16" />
-      <File FileName="Assets/Scripts/GemScript.cs" Line="20" Column="10" />
-      <File FileName="Assets/Scripts/PartPopulator.cs" Line="48" Column="1" />
+      <File FileName="Assets/Scripts/GemScript.cs" Line="13" Column="48" />
+      <File FileName="Assets/Scripts/PartPopulator.cs" Line="42" Column="70" />
+      <File FileName="Assets/Scripts/CollidorScript.cs" Line="21" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

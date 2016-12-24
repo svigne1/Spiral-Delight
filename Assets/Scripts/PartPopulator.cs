@@ -26,6 +26,7 @@ public class PartPopulator : MonoBehaviour {
 		GameObject o = (GameObject)Instantiate(parts[l], new Vector3(0, 0, 0), Quaternion.identity);
 		o.GetComponent<Renderer> ().material = randomPicker<Material>(materials);
 		o.GetComponent<GemScript> ().layer = l;
+		o.name = "L" + l + "N" + i;
 		createCollidors (o);
 		o.GetComponent<Transform> ().Rotate (0.0f, 0.0f, gemDegrees * i); 
 		o.GetComponent<Transform> ().parent = gameObject.GetComponent<Transform> ();
@@ -37,6 +38,7 @@ public class PartPopulator : MonoBehaviour {
 		GameObject[] c = new GameObject[4];
 		for (int k = 0; k < 4; k++) {
 			c[k] = (GameObject)Instantiate(collidor, new Vector3(-gemOrigin - layer * gemLength, 0, 0), Quaternion.identity);
+			c [k].name = p.name + "K" + k;
 			c[k].GetComponent<CollidorScript> ().side = k;
 			c[k].GetComponent<Transform> ().parent = p.GetComponent<Transform> ();
 			c [k].GetComponent<CollidorScript> ().p = p.GetComponent<GemScript> ();
