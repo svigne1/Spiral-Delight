@@ -38,7 +38,8 @@ public class PartPopulator : MonoBehaviour {
 		GameObject[] c = new GameObject[4];
 		for (int k = 0; k < 4; k++) {
 			c[k] = (GameObject)Instantiate(collidor, new Vector3(-gemOrigin - layer * gemLength, 0, 0), Quaternion.identity);
-			c [k].name = p.name + "K" + k;
+			// C stands for the Collidor Number
+			c [k].name = p.name + "C" + k;
 			c[k].GetComponent<CollidorScript> ().side = k;
 			c[k].GetComponent<Transform> ().parent = p.GetComponent<Transform> ();
 			c [k].GetComponent<CollidorScript> ().p = p.GetComponent<GemScript> ();

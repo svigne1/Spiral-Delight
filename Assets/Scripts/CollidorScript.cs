@@ -9,7 +9,7 @@ public class CollidorScript : MonoBehaviour {
 	// Use this for initialization
 	void OnTriggerEnter (Collider o) {
 //		p.addNeigbour(side,o);
-		handsup = o.gameObject;
+		handsup = getParent(o.gameObject);
 		print ("enter");
 		
 	}
@@ -19,6 +19,9 @@ public class CollidorScript : MonoBehaviour {
 		print ("exit");
 	}
 
+	GameObject getParent(GameObject o ){
+		return o.GetComponent<Transform> ().parent.gameObject;
+	}
 	
 	// Update is called once per frame
 	void Update () {
