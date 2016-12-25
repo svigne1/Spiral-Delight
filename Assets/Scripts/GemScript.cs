@@ -7,68 +7,80 @@ public class GemScript : MonoBehaviour {
 	// Taken from this answer http://answers.unity3d.com/answers/177525/view.html
 	public float sensitivity;
 	private Vector3 mouseReference;
-	private Vector3 mouseOffset;
-	private float degrees;
 	private Vector3 rotation;
 	private bool isRotating;
+	public Camera camera;
+	public Vector3 planeCenter;
+	public float gemDegrees;
 
 	void Start ()
 	{
-		sensitivity = 1.6f;
+		sensitivity = 1.0f;
 		rotation = Vector3.zero;
+		camera = Camera.main;
+		gemDegrees = gameObject.transform.parent.parent.gameObject.GetComponent<BoardScript> ().gemDegrees;
+		planeCenter = camera.ViewportToWorldPoint (new Vector3(0.5f,0.5f,camera.nearClipPlane));
+		print (planeCenter);
 	}
 
 	void Update()
 	{
 		if(isRotating)
 		{
-			// offset
-//			mouseOffset = (Input.mousePosition - mouseReference);
-			degrees = Vector3.Angle(Input.mousePosition,mouseReference);
-			float sign = Mathf.Sign(Vector3.Dot(Input.mousePosition,mouseReference));
-			float finalAngle = sign * degrees;
+			
+			Vector3 newReference = mouseToPlanePoint (Input.mousePosition);
+//			camera.transform.position;
+			float finalAngle = Vector3.Angle( mouseReference, newReference);
+			if (Vector3.Cross (mouseReference, newReference).z < 0)
+				finalAngle *= -1;
+//			finalAngle = RoundOff (finalAngle);
 
-			// apply rotation
-//			rotation.z = -(mouseOffset.x + mouseOffset.y) * sensitivity;
 			rotation.z = finalAngle * sensitivity;
-
-			// rotate
 			gameObject.transform.parent.Rotate(rotation);
-
-			// store mouse
-			mouseReference = Input.mousePosition;
+			mouseReference = newReference;
 		}
 	}
 
 	void OnMouseDown()
 	{
-		// rotating flag
 		isRotating = true;
-
-		// store mouse
-		mouseReference = Input.mousePosition;
+		mouseReference = mouseToPlanePoint (Input.mousePosition);
 	}
 
 	void OnMouseUp()
 	{
-		// rotating flag
 		isRotating = false;
 		RoundOff (gameObject.transform.parent);
 	}
 
+	Vector3 mouseToPlanePoint(Vector3 mousePosition){
+		Vector3 worldPoint = camera.ScreenToWorldPoint (new Vector3(mousePosition.x,mousePosition.y,camera.nearClipPlane));
+		Vector3 planePoint = worldPoint - planeCenter;
+		return planePoint;
+	}
+
+	// Rounds off the rotation angle of the layer.
 	void RoundOff(Transform l){
-		float gemDegrees = l.transform.parent.gameObject.GetComponent<PartPopulator> ().gemDegrees;
 
 		float current = l.rotation.eulerAngles.z;
 		float quotient = (float)Mathf.Floor(current / gemDegrees);
 		float extra = current - quotient * gemDegrees;
 
-		print (current);
-		print (extra);
 		if (extra > gemDegrees / 2) {
 			l.rotation = Quaternion.Euler(0,0, gemDegrees*(quotient+1));
 		} else {
 			l.rotation = Quaternion.Euler(0,0, gemDegrees*quotient);
 		}
 	}
+//	float RoundOff(float current){
+//
+//		float quotient = (float)Mathf.Floor(current / gemDegrees);
+//		float extra = current - quotient * gemDegrees;
+//
+//		if (extra > gemDegrees / 2) {
+//			return gemDegrees*(quotient+1);
+//		} else {
+//			return gemDegrees*quotient;
+//		}
+//	}
 }

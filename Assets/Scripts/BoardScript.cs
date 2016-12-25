@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PartPopulator : MonoBehaviour {
+public class BoardScript : MonoBehaviour {
 
 	public GameObject collidor;
 	public GameObject[] Layer;
