@@ -29,6 +29,7 @@ public class BoardScript : MonoBehaviour {
 		GameObject o = (GameObject)Instantiate(parts[l], new Vector3(0, 0, 0), Quaternion.identity);
 		o.GetComponent<Renderer> ().material = randomPicker<Material>(materials);
 		o.GetComponent<GemScript> ().layer = l;
+		o.GetComponent<GemScript> ().gemDegrees = gemDegrees;
 		o.name = "L" + l + "N" + i;
 		createCollidors (o);
 		o.transform.Rotate (0.0f, 0.0f, gemDegrees * i); 

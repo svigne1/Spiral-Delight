@@ -9,7 +9,6 @@ public class GemScript : MonoBehaviour {
 	private Vector3 mouseReference;
 	private Vector3 rotation;
 	private bool isRotating;
-	public Camera camera;
 	public Vector3 planeCenter;
 	public float gemDegrees;
 
@@ -17,10 +16,13 @@ public class GemScript : MonoBehaviour {
 	{
 		sensitivity = 1.0f;
 		rotation = Vector3.zero;
-		camera = Camera.main;
-		gemDegrees = gameObject.transform.parent.parent.gameObject.GetComponent<BoardScript> ().gemDegrees;
-		planeCenter = camera.ViewportToWorldPoint (new Vector3(0.5f,0.5f,camera.nearClipPlane));
-		print (planeCenter);
+		planeCenter = Camera.main.ViewportToWorldPoint (new Vector3(0.5f,0.5f,Camera.main.nearClipPlane));
+	}
+
+	void OnMouseDown()
+	{
+		isRotating = true;
+		mouseReference = mouseInPlanePoint ();
 	}
 
 	void Update()
@@ -28,12 +30,10 @@ public class GemScript : MonoBehaviour {
 		if(isRotating)
 		{
 			
-			Vector3 newReference = mouseToPlanePoint (Input.mousePosition);
-//			camera.transform.position;
+			Vector3 newReference = mouseInPlanePoint ();
 			float finalAngle = Vector3.Angle( mouseReference, newReference);
 			if (Vector3.Cross (mouseReference, newReference).z < 0)
 				finalAngle *= -1;
-//			finalAngle = RoundOff (finalAngle);
 
 			rotation.z = finalAngle * sensitivity;
 			gameObject.transform.parent.Rotate(rotation);
@@ -41,22 +41,17 @@ public class GemScript : MonoBehaviour {
 		}
 	}
 
-	void OnMouseDown()
-	{
-		isRotating = true;
-		mouseReference = mouseToPlanePoint (Input.mousePosition);
-	}
-
 	void OnMouseUp()
 	{
 		isRotating = false;
 		RoundOff (gameObject.transform.parent);
+		gameObject.transform.parent.gameObject.BroadcastMessage ("ValidateAngle");
 	}
 
-	Vector3 mouseToPlanePoint(Vector3 mousePosition){
-		Vector3 worldPoint = camera.ScreenToWorldPoint (new Vector3(mousePosition.x,mousePosition.y,camera.nearClipPlane));
-		Vector3 planePoint = worldPoint - planeCenter;
-		return planePoint;
+	Vector3 mouseInPlanePoint(){
+		Vector3 mouseInworldPoint = Camera.main.ScreenToWorldPoint (new Vector3(Input.mousePosition.x,Input.mousePosition.y,Camera.main.nearClipPlane));
+		Vector3 inPlanePoint = mouseInworldPoint - planeCenter;
+		return inPlanePoint;
 	}
 
 	// Rounds off the rotation angle of the layer.
@@ -72,15 +67,7 @@ public class GemScript : MonoBehaviour {
 			l.rotation = Quaternion.Euler(0,0, gemDegrees*quotient);
 		}
 	}
-//	float RoundOff(float current){
-//
-//		float quotient = (float)Mathf.Floor(current / gemDegrees);
-//		float extra = current - quotient * gemDegrees;
-//
-//		if (extra > gemDegrees / 2) {
-//			return gemDegrees*(quotient+1);
-//		} else {
-//			return gemDegrees*quotient;
-//		}
-//	}
+	public void ValidateAngle(){
+		
+	}
 }
