@@ -17,6 +17,7 @@ public class BoardScript : MonoBehaviour {
 		Layer = new GameObject[parts.Length];
 		for (int l = 0; l < parts.Length; l++) {
 			Layer [l] = new GameObject("Layer"+l);
+			Layer[l].tag = "Layer";
 			for (int i = 0; i < ts; i++) {
 				GameObject temp = createGem (l, i);
 				temp.transform.parent = Layer[l].transform;
