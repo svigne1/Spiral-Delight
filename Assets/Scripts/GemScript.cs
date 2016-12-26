@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GemScript : MonoBehaviour {
 	public int layer;
@@ -11,6 +12,9 @@ public class GemScript : MonoBehaviour {
 	private bool isRotating;
 	public Vector3 planeCenter;
 	public float gemDegrees;
+	public int naanthaan = 0;
+	public string color;
+	public BoardScript b;
 
 	void Start ()
 	{
@@ -21,6 +25,8 @@ public class GemScript : MonoBehaviour {
 
 	void OnMouseDown()
 	{
+		naanthaan = 1;
+		b.BoardLock = 1;
 		isRotating = true;
 		mouseReference = mouseInPlanePoint ();
 	}
@@ -36,7 +42,7 @@ public class GemScript : MonoBehaviour {
 				finalAngle *= -1;
 
 			rotation.z = finalAngle * sensitivity;
-			gameObject.transform.parent.Rotate(rotation);
+			transform.parent.Rotate(rotation);
 			mouseReference = newReference;
 		}
 	}
@@ -44,8 +50,16 @@ public class GemScript : MonoBehaviour {
 	void OnMouseUp()
 	{
 		isRotating = false;
-		RoundOff (gameObject.transform.parent);
-		gameObject.transform.parent.gameObject.BroadcastMessage ("ValidateAngle");
+		RoundOff (transform.parent);
+		b.BoardLock = 0;
+		StartCoroutine(StartValidator());
+		naanthaan = 0;
+
+	}
+
+	public IEnumerator StartValidator() {
+		yield return new WaitForSeconds(0.05f); // waits 0.6 seconds
+		transform.parent.BroadcastMessage ("ValidateRadius");
 	}
 
 	Vector3 mouseInPlanePoint(){
@@ -67,7 +81,39 @@ public class GemScript : MonoBehaviour {
 			l.rotation = Quaternion.Euler(0,0, gemDegrees*quotient);
 		}
 	}
-	public void ValidateAngle(){
-		
+	public void ValidateRadius(){
+
+		Stack<GameObject> one = GemChain (1);
+		one.Pop ();
+		Stack<GameObject> two = GemChain (3);
+		if (naanthaan == 1) {
+			print (one.Count);
+			print (two.Count);
+		}
+		if (one.Count + two.Count >= 3) {
+			foreach (GameObject i in one) {
+				Destroy (i);
+			}
+			foreach (GameObject i in two) {
+				Destroy (i);
+			}
+		}
+	}
+
+	Stack<GameObject> GemChain(int side){
+		Stack<GameObject> answer;
+		foreach (Transform child in transform) {
+			CollidorScript collidor = child.GetComponent<CollidorScript> ();
+			if (collidor.side == side && collidor.handsup != null) {
+				if (collidor.handsup.GetComponent<GemScript> ().color == color) {
+					answer = collidor.handsup.GetComponent<GemScript> ().GemChain (side);
+					answer.Push (gameObject);
+					return answer;
+				} 
+			}
+		}
+		answer = new Stack<GameObject> ();
+		answer.Push (gameObject);
+		return answer;
 	}
 }

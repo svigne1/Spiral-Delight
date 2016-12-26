@@ -12,6 +12,7 @@ public class BoardScript : MonoBehaviour {
 	public float gemRadians = 11.25f * 0.01746031746f;
 	public float gemLength = 0.08254f;
 	public float gemOrigin = 0.094f;
+	public int BoardLock = 1;
 	void Start () {
 		int ts = 32;
 		Layer = new GameObject[parts.Length];
@@ -22,8 +23,9 @@ public class BoardScript : MonoBehaviour {
 				GameObject temp = createGem (l, i);
 				temp.transform.parent = Layer[l].transform;
 			}
-			Layer[l].transform.parent = gameObject.transform;
+			Layer[l].transform.parent = transform;
 		}
+		BoardLock = 0;
 	}
 
 	GameObject createGem(int l,int i){
@@ -31,6 +33,8 @@ public class BoardScript : MonoBehaviour {
 		o.GetComponent<Renderer> ().material = randomPicker<Material>(materials);
 		o.GetComponent<GemScript> ().layer = l;
 		o.GetComponent<GemScript> ().gemDegrees = gemDegrees;
+		o.GetComponent<GemScript> ().color = o.GetComponent<Renderer> ().material.name;
+		o.GetComponent<GemScript> ().b = this;
 		o.name = "L" + l + "N" + i;
 		createCollidors (o);
 		o.transform.Rotate (0.0f, 0.0f, gemDegrees * i); 
@@ -39,23 +43,25 @@ public class BoardScript : MonoBehaviour {
 
 	void createCollidors(GameObject p){
 		int layer = p.GetComponent<GemScript> ().layer;
+
 		GameObject[] c = new GameObject[4];
 		for (int k = 0; k < 4; k++) {
 			c[k] = (GameObject)Instantiate(collidor, new Vector3(-gemOrigin - layer * gemLength, 0, 0), Quaternion.identity);
-			// C stands for the Collidor Number
 			c [k].name = p.name + "C" + k;
+			c [k].transform.parent = p.transform;
 			c[k].GetComponent<CollidorScript> ().side = k;
-			c[k].transform.parent = p.transform;
 			c [k].GetComponent<CollidorScript> ().p = p.GetComponent<GemScript> ();
+			c [k].GetComponent<CollidorScript> ().b = this;
 			placeCollidor (c [k]);
 		}
 	}
 	void placeCollidor(GameObject c){
-		int layer = c.GetComponent<CollidorScript> ().p.layer;
+		GameObject p = c.GetComponent<CollidorScript> ().p.gameObject;
+		int layer = p.GetComponent<GemScript>().layer;
 		switch (c.GetComponent<CollidorScript> ().side)
 		{
 		case 0:
-			c.transform.Translate (new Vector3(-gemLength/2,0,0));
+			c.transform.Translate (new Vector3 (-gemLength / 2, 0, 0));
 			break;
 		case 1:
 			c.transform.Translate (new Vector3(-gemLength,-0.01f,0));
