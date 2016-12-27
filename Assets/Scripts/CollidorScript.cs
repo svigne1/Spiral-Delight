@@ -2,11 +2,10 @@
 using System.Collections;
 
 public class CollidorScript : MonoBehaviour {
-
-	public int side;
+	
 	public GemScript p;
 	public BoardScript b;
-	public GameObject handsup;
+	public GemScript handsup;
 
 
 	void OnTriggerStay (Collider o) {
@@ -15,14 +14,31 @@ public class CollidorScript : MonoBehaviour {
 			handsup = null;
 		} else {
 			if (o.tag == "Gem" && o.name != p.name) {
-				handsup = o.gameObject;
+				handsup = o.GetComponent<GemScript>();
 			}
 		}
 	}
-//	void OnTriggerEnter(Collider o){
-//		waities = 1;
-//	}
-//	void OnTriggerExit(Collider o){
-//		waities = 1;
-//	}
+	public void PlaceCollidor(){
+		transform.position = new Vector3(0, 0, 0);
+		float standard = -p.l.gemOrigin - p.l.layer * p.l.gemLength;
+		switch (name)
+		{
+		case "clock":
+			transform.Translate (new Vector3 (standard-p.l.gemLength / 2, 0, 0));
+			break;
+		case "outside":
+			transform.Translate (new Vector3(standard-p.l.gemLength,-0.01f,0));
+			break;
+		case "anti":
+			float x_tan = (p.l.gemOrigin + p.l.layer * p.l.gemLength + p.l.gemLength / 2);
+			float tan = Mathf.Tan (p.l.gemRadians);
+			float y_tan = tan * x_tan;
+			transform.Translate (new Vector3(standard-p.l.gemLength/2,-y_tan,0));
+			break;
+		case "inside":
+			transform.Translate (new Vector3(standard,-0.01f,0));
+			break;
+
+		}
+	}
 }

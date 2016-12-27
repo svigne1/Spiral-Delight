@@ -3,18 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class GemScript : MonoBehaviour {
-	public int layer;
+	public LayerScript l;
+	public GameObject collidor;
+	public int i;
 
 	// Taken from this answer http://answers.unity3d.com/answers/177525/view.html
 	public float sensitivity;
 	private Vector3 mouseReference;
 	private Vector3 rotation;
+	public string[] collidorNames = new string[]{"outside","inside","clock","anti"};
 	private bool isRotating;
 	public Vector3 planeCenter;
 	public float gemDegrees;
 	public int naanthaan = 0;
 	public string color;
-	public BoardScript b;
 
 	void Start ()
 	{
@@ -26,7 +28,7 @@ public class GemScript : MonoBehaviour {
 	void OnMouseDown()
 	{
 		naanthaan = 1;
-		b.BoardLock = 1;
+		l.b.BoardLock = 1;
 		isRotating = true;
 		mouseReference = mouseInPlanePoint ();
 	}
@@ -51,10 +53,8 @@ public class GemScript : MonoBehaviour {
 	{
 		isRotating = false;
 		RoundOff (transform.parent);
-		b.BoardLock = 0;
+		l.b.BoardLock = 0;
 		StartCoroutine(StartValidator());
-		naanthaan = 0;
-
 	}
 
 	public IEnumerator StartValidator() {
@@ -82,38 +82,83 @@ public class GemScript : MonoBehaviour {
 		}
 	}
 	public void ValidateRadius(){
+		Queue<GemScript> inside = GemChain ("inside");
+		Queue<GemScript> outside = GemChain ("outside");
 
-		Stack<GameObject> one = GemChain (1);
-		one.Pop ();
-		Stack<GameObject> two = GemChain (3);
-		if (naanthaan == 1) {
-			print (one.Count);
-			print (two.Count);
+		// As same object is counted twice
+		if (outside.Count + inside.Count >= 4) {
+			GemScript xOut =  outside.Peek ();
+			GemScript xIn =  inside.Peek ();
+			GemScript xOutPlusOne = xOut.FindOuterFriend();
+
+			foreach (GemScript i in outside) {
+				Destroy (i.gameObject);
+			}
+			foreach (GemScript i in inside) {
+				Destroy (i.gameObject);
+			}
+			if(xOutPlusOne != null){
+				xOutPlusOne.FallDown (xIn.l);
+			}
 		}
-		if (one.Count + two.Count >= 3) {
-			foreach (GameObject i in one) {
-				Destroy (i);
-			}
-			foreach (GameObject i in two) {
-				Destroy (i);
-			}
+		naanthaan = 0;
+	}
+	public GemScript FindOuterFriend(){
+		return transform.Find ("outside").GetComponent<CollidorScript> ().handsup;
+	}
+	void FallDown(LayerScript tolayer)
+	{
+		while (l.layer != tolayer.layer) {
+			ChangeTo (l.inner);
+		}
+		PlaceCollidors ();
+		GemScript outerFriend = FindOuterFriend();
+		if(outerFriend != null){
+			outerFriend.FallDown(tolayer.outer);
 		}
 	}
+	public void ChangeTo(LayerScript tolayer)
+	{
+		l = tolayer;
+		name = "L" + l.layer + "N" + i;
+		GetComponent<MeshFilter>().mesh = tolayer.mesh[tolayer.layer];
+		GetComponent<MeshCollider>().sharedMesh = tolayer.mesh[tolayer.layer];
+		transform.parent = tolayer.transform;
 
-	Stack<GameObject> GemChain(int side){
-		Stack<GameObject> answer;
+	}
+	public void PlaceCollidors(){
+		foreach (Transform child in transform) {
+			child.GetComponent<CollidorScript> ().PlaceCollidor ();
+		}
+	}
+	Queue<GemScript> GemChain(string collidorName){
+		Queue<GemScript> answer;
 		foreach (Transform child in transform) {
 			CollidorScript collidor = child.GetComponent<CollidorScript> ();
-			if (collidor.side == side && collidor.handsup != null) {
+			if (collidor.name == collidorName && collidor.handsup != null) {
 				if (collidor.handsup.GetComponent<GemScript> ().color == color) {
-					answer = collidor.handsup.GetComponent<GemScript> ().GemChain (side);
-					answer.Push (gameObject);
+					answer = collidor.handsup.GetComponent<GemScript> ().GemChain (collidorName);
+					answer.Enqueue (this);
 					return answer;
 				} 
 			}
 		}
-		answer = new Stack<GameObject> ();
-		answer.Push (gameObject);
+		answer = new Queue<GemScript> ();
+		answer.Enqueue (this);
 		return answer;
 	}
+
+	public void AddCollidors(){
+
+		GameObject[] c = new GameObject[4];
+		for (int k = 0; k < 4; k++) {
+			c[k] = (GameObject)Instantiate(collidor, new Vector3(0, 0, 0), Quaternion.identity);
+			c [k].name = collidorNames[k];
+			c [k].transform.parent = transform;
+			c [k].GetComponent<CollidorScript> ().p = this;
+			c [k].GetComponent<CollidorScript> ().b = l.b;
+//			c [k].GetComponent<CollidorScript> ().PlaceCollidor ();
+		}
+	}
+
 }
