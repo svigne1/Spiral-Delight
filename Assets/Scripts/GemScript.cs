@@ -12,7 +12,7 @@ public class GemScript : MonoBehaviour {
 	private Vector3 mouseReference;
 	private Vector3 rotation;
 	public string[] collidorNames = new string[]{"outside","inside","clock","anti"};
-	private bool isRotating;
+	private bool isRotating,onMouseRelease;
 	public Vector3 planeCenter;
 	public float gemDegrees;
 	public int naanthaan = 0;
@@ -27,17 +27,26 @@ public class GemScript : MonoBehaviour {
 
 	void OnMouseDown()
 	{
-		naanthaan = 1;
-		l.b.BoardLock = 1;
-		isRotating = true;
-		mouseReference = mouseInPlanePoint ();
+		if (l.b.BoardLock == 0) {
+			l.b.BoardLock++;
+			naanthaan = 1;
+			isRotating = true;
+			mouseReference = mouseInPlanePoint ();
+		}
 	}
 
-	void Update()
+	void FixedUpdate()
 	{
+		if (onMouseRelease) {
+			onMouseRelease = false;
+			isRotating = false;
+			RoundOff (transform.parent);
+			StartValidator ();
+			l.b.BoardLock--;
+			naanthaan = 0;
+		}
 		if(isRotating)
 		{
-			
 			Vector3 newReference = mouseInPlanePoint ();
 			float finalAngle = Vector3.Angle( mouseReference, newReference);
 			if (Vector3.Cross (mouseReference, newReference).z < 0)
@@ -47,21 +56,51 @@ public class GemScript : MonoBehaviour {
 			transform.parent.Rotate(rotation);
 			mouseReference = newReference;
 		}
+
 	}
 
 	void OnMouseUp()
 	{
-		isRotating = false;
-		RoundOff (transform.parent);
-		l.b.BoardLock = 0;
-		StartCoroutine(StartValidator());
+		onMouseRelease = true;
 	}
 
-	public IEnumerator StartValidator() {
-		yield return new WaitForSeconds(0.05f); // waits 0.6 seconds
+	public void StartValidator() {
 		transform.parent.BroadcastMessage ("ValidateRadius");
 	}
+	public void ValidateRadius(){
+		Queue<GemScript> inside = GemChain ("inside");
+		Queue<GemScript> outside = GemChain ("outside");
 
+		// As same object is counted twice
+		if (outside.Count + inside.Count >= 4) {
+
+			foreach (GemScript i in outside) {
+				i.transform.Translate (new Vector3(0,0,-20));
+				Destroy (i.gameObject);
+			}
+			foreach (GemScript i in inside) {
+				i.transform.Translate (new Vector3(0,0,-20));
+				Destroy (i.gameObject);
+			}
+		}
+	}
+	public void FallDown()
+	{
+		l.b.BoardLock++;
+		ChangeTo (l.inner);
+		PlaceCollidors ();
+		l.b.BoardLock--;
+	}
+	public void ChangeTo(LayerScript tolayer)
+	{
+		if (tolayer != null) {
+			l = tolayer;
+			name = "L" + l.layer + "N" + l.transform.childCount;
+			GetComponent<MeshFilter>().mesh = tolayer.mesh[tolayer.layer];
+			GetComponent<MeshCollider>().sharedMesh = tolayer.mesh[tolayer.layer];
+			transform.parent = tolayer.transform;
+		}
+	}
 	Vector3 mouseInPlanePoint(){
 		Vector3 mouseInworldPoint = Camera.main.ScreenToWorldPoint (new Vector3(Input.mousePosition.x,Input.mousePosition.y,Camera.main.nearClipPlane));
 		Vector3 inPlanePoint = mouseInworldPoint - planeCenter;
@@ -76,56 +115,16 @@ public class GemScript : MonoBehaviour {
 		float extra = current - quotient * gemDegrees;
 
 		if (extra > gemDegrees / 2) {
-			l.rotation = Quaternion.Euler(0,0, gemDegrees*(quotient+1));
+			l.Rotate(new Vector3(0,0,gemDegrees-extra));
 		} else {
-			l.rotation = Quaternion.Euler(0,0, gemDegrees*quotient);
+			l.Rotate(new Vector3(0,0,-extra));
 		}
 	}
-	public void ValidateRadius(){
-		Queue<GemScript> inside = GemChain ("inside");
-		Queue<GemScript> outside = GemChain ("outside");
 
-		// As same object is counted twice
-		if (outside.Count + inside.Count >= 4) {
-			GemScript xOut =  outside.Peek ();
-			GemScript xIn =  inside.Peek ();
-			GemScript xOutPlusOne = xOut.FindOuterFriend();
+	public GemScript FindNeigbhour(string side){
+		return transform.Find (side).GetComponent<CollidorScript> ().handsup[0];
+	}
 
-			foreach (GemScript i in outside) {
-				Destroy (i.gameObject);
-			}
-			foreach (GemScript i in inside) {
-				Destroy (i.gameObject);
-			}
-			if(xOutPlusOne != null){
-				xOutPlusOne.FallDown (xIn.l);
-			}
-		}
-		naanthaan = 0;
-	}
-	public GemScript FindOuterFriend(){
-		return transform.Find ("outside").GetComponent<CollidorScript> ().handsup;
-	}
-	void FallDown(LayerScript tolayer)
-	{
-		while (l.layer != tolayer.layer) {
-			ChangeTo (l.inner);
-		}
-		PlaceCollidors ();
-		GemScript outerFriend = FindOuterFriend();
-		if(outerFriend != null){
-			outerFriend.FallDown(tolayer.outer);
-		}
-	}
-	public void ChangeTo(LayerScript tolayer)
-	{
-		l = tolayer;
-		name = "L" + l.layer + "N" + i;
-		GetComponent<MeshFilter>().mesh = tolayer.mesh[tolayer.layer];
-		GetComponent<MeshCollider>().sharedMesh = tolayer.mesh[tolayer.layer];
-		transform.parent = tolayer.transform;
-
-	}
 	public void PlaceCollidors(){
 		foreach (Transform child in transform) {
 			child.GetComponent<CollidorScript> ().PlaceCollidor ();
@@ -135,9 +134,9 @@ public class GemScript : MonoBehaviour {
 		Queue<GemScript> answer;
 		foreach (Transform child in transform) {
 			CollidorScript collidor = child.GetComponent<CollidorScript> ();
-			if (collidor.name == collidorName && collidor.handsup != null) {
-				if (collidor.handsup.GetComponent<GemScript> ().color == color) {
-					answer = collidor.handsup.GetComponent<GemScript> ().GemChain (collidorName);
+			if (collidor.name == collidorName && collidor.handsup.Count != 0) {
+				if (collidor.handsup[0].color == color) {
+					answer = collidor.handsup[0].GemChain (collidorName);
 					answer.Enqueue (this);
 					return answer;
 				} 
@@ -155,9 +154,7 @@ public class GemScript : MonoBehaviour {
 			c[k] = (GameObject)Instantiate(collidor, new Vector3(0, 0, 0), Quaternion.identity);
 			c [k].name = collidorNames[k];
 			c [k].transform.parent = transform;
-			c [k].GetComponent<CollidorScript> ().p = this;
-			c [k].GetComponent<CollidorScript> ().b = l.b;
-//			c [k].GetComponent<CollidorScript> ().PlaceCollidor ();
+			c [k].GetComponent<CollidorScript> ().g = this;
 		}
 	}
 

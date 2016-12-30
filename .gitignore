@@ -1,6 +1,8 @@
 # =============== #
 # Unity generated #
 # =============== #
+*.zip
+*release
 [Tt]emp/
 [Oo]bj/
 [Bb]uild

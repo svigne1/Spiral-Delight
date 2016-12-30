@@ -5,11 +5,11 @@ public class BoardScript : MonoBehaviour {
 
 
 	public GameObject Layer;
-	public int BoardLock = 1;
+	public int BoardLock;
 
 	void Start () {
 		LayerScript inner = null;
-		for (int l = 0; l < Layer.GetComponent<LayerScript>().mesh.Length; l++) {
+		for (int l = 0; l <Layer.GetComponent<LayerScript>().mesh.Length; l++) {
 			LayerScript newLayer = AddLayer(l);
 			if (inner != null)
 				inner.outer = newLayer;
@@ -25,9 +25,16 @@ public class BoardScript : MonoBehaviour {
 		newLayer.layer = l;
 		newLayer.b = this;
 		newLayer.transform.parent = transform;
+		newLayer.tanGemDegrees = Mathf.Tan (newLayer.gemRadians);
 
 		// Add Gems to the Layer.
-		int ts = 32;
+		int ts;
+		if (l == 0 )
+			ts = 32;
+		else if (l == 1)
+			ts = 32;
+		else
+			ts = 32;
 		for (int i = 0; i < ts; i++) {
 			newLayer.AddGem (i);
 		}
