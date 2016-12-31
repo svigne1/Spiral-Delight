@@ -5,7 +5,8 @@ public class BoardScript : MonoBehaviour {
 
 
 	public GameObject Layer;
-	public int BoardLock;
+	public bool FreezeGravity;
+	public int Equilibrium;
 
 	void Start () {
 		LayerScript inner = null;
@@ -16,7 +17,8 @@ public class BoardScript : MonoBehaviour {
 			newLayer.inner = inner;
 			inner = newLayer;
 		}
-		BoardLock = 0;
+		FreezeGravity = false;
+		Equilibrium = 0;
 	}
 
 	LayerScript AddLayer(int l){

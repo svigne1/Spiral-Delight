@@ -6,8 +6,29 @@ public class CollidorScript : MonoBehaviour {
 	
 	public GemScript g;
 	public List<GemScript> handsup;
+
+	public bool FreeFall;
+
+	public void FreeFallController(string s){
+		if (s == "Start") {
+			if (!FreeFall) {
+				FreeFall = true;
+				g.l.b.Equilibrium++;
+			}
+		} 
+		if(s == "Stop") {
+			if (FreeFall) {
+				FreeFall = false;
+				g.l.b.Equilibrium--;
+			}
+		}
+	}
+
 	void Start(){
-		StartCoroutine (Gravity ());
+		if (name == "inside") {
+			FreeFall = false;
+			StartCoroutine (Gravity ());
+		}
 	}
 	void OnTriggerEnter (Collider o) {
 		if (o.tag == "Gem" && o.name != g.name) {
@@ -21,17 +42,16 @@ public class CollidorScript : MonoBehaviour {
 	}
 	public IEnumerator Gravity(){
 		while (true) {
-			if (g.l.layer != 0 && name == "inside" && g.l.b.BoardLock == 0 && handsup.Count == 0) {
-					g.FallDown ();
+			if (g.l.layer != 0 && !g.l.b.FreezeGravity && handsup.Count == 0) {
+				FreeFallController ("Start");
+				g.FallDown ();
+			} else {
+				FreeFallController ("Stop");
 			}
-			yield return new WaitForSeconds(0.06f);
+			yield return new WaitForSeconds(0.1f);
 		}
 	}
-//	void FixedUpdate(){
-//		if (g.l.layer != 0 && name == "inside" && g.l.b.BoardLock == 0 && handsup.Count == 0) {
-//					g.FallDown ();
-//			}
-//	}
+
 	public void AddToHandsUp(GemScript g){
 		handsup.Add (g);
 	}

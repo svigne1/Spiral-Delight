@@ -12,10 +12,9 @@ public class GemScript : MonoBehaviour {
 	private Vector3 mouseReference;
 	private Vector3 rotation;
 	public string[] collidorNames = new string[]{"outside","inside","clock","anti"};
-	private bool isRotating,onMouseRelease;
+	private bool isRotating,onMouseRelease,MouseActive;
 	public Vector3 planeCenter;
 	public float gemDegrees;
-	public int naanthaan = 0;
 	public string color;
 
 	void Start ()
@@ -24,12 +23,10 @@ public class GemScript : MonoBehaviour {
 		rotation = Vector3.zero;
 		planeCenter = Camera.main.ViewportToWorldPoint (new Vector3(0.5f,0.5f,Camera.main.nearClipPlane));
 	}
-
 	void OnMouseDown()
 	{
-		if (l.b.BoardLock == 0) {
-			l.b.BoardLock++;
-			naanthaan = 1;
+		if (l.b.Equilibrium == 0) {
+			l.b.FreezeGravity = true;
 			isRotating = true;
 			mouseReference = mouseInPlanePoint ();
 		}
@@ -42,8 +39,7 @@ public class GemScript : MonoBehaviour {
 			isRotating = false;
 			RoundOff (transform.parent);
 			StartValidator ();
-			l.b.BoardLock--;
-			naanthaan = 0;
+			l.b.FreezeGravity = false;
 		}
 		if(isRotating)
 		{
@@ -84,18 +80,34 @@ public class GemScript : MonoBehaviour {
 			}
 		}
 	}
+	public void ValidateCircumference(){
+		Queue<GemScript> anti = GemChain ("anti");
+		Queue<GemScript> clock = GemChain ("clock");
+
+		// As same object is counted twice
+		if (clock.Count + anti.Count >= 4) {
+
+			foreach (GemScript i in anti) {
+				i.transform.Translate (new Vector3(0,0,-20));
+				Destroy (i.gameObject);
+			}
+			foreach (GemScript i in clock) {
+				i.transform.Translate (new Vector3(0,0,-20));
+				Destroy (i.gameObject);
+			}
+		}
+	}
 	public void FallDown()
 	{
-		l.b.BoardLock++;
 		ChangeTo (l.inner);
 		PlaceCollidors ();
-		l.b.BoardLock--;
 	}
 	public void ChangeTo(LayerScript tolayer)
 	{
 		if (tolayer != null) {
 			l = tolayer;
-			name = "L" + l.layer + "N" + l.transform.childCount;
+			// For Debugging .. not changing name
+			if(name=="Gem(Clone)")name = "L" + l.layer + "N" + l.transform.childCount;
 			GetComponent<MeshFilter>().mesh = tolayer.mesh[tolayer.layer];
 			GetComponent<MeshCollider>().sharedMesh = tolayer.mesh[tolayer.layer];
 			transform.parent = tolayer.transform;
