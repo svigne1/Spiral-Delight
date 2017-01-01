@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class GemScript : MonoBehaviour {
 	public LayerScript l;
 	public GameObject collidor;
+	public bool Destroyed;
 	public int i;
 
 	// Taken from this answer http://answers.unity3d.com/answers/177525/view.html
@@ -12,7 +13,7 @@ public class GemScript : MonoBehaviour {
 	private Vector3 mouseReference;
 	private Vector3 rotation;
 	public string[] collidorNames = new string[]{"outside","inside","clock","anti"};
-	private bool isRotating,onMouseRelease,MouseActive;
+	private bool isRotating,onMouseRelease;
 	public Vector3 planeCenter;
 	public float gemDegrees;
 	public string color;
@@ -21,12 +22,15 @@ public class GemScript : MonoBehaviour {
 	{
 		sensitivity = 1.0f;
 		rotation = Vector3.zero;
+		Destroyed = false;
 		planeCenter = Camera.main.ViewportToWorldPoint (new Vector3(0.5f,0.5f,Camera.main.nearClipPlane));
 	}
 	void OnMouseDown()
 	{
 		if (l.b.Equilibrium == 0) {
-			l.b.FreezeGravity = true;
+			l.b.InputLayer = l;
+			l.b.AddToChangeList (this);
+			l.b.Gravity = false;
 			isRotating = true;
 			mouseReference = mouseInPlanePoint ();
 		}
@@ -38,8 +42,7 @@ public class GemScript : MonoBehaviour {
 			onMouseRelease = false;
 			isRotating = false;
 			RoundOff (transform.parent);
-			StartValidator ();
-			l.b.FreezeGravity = false;
+			l.b.Gravity = true;
 		}
 		if(isRotating)
 		{
@@ -59,24 +62,27 @@ public class GemScript : MonoBehaviour {
 	{
 		onMouseRelease = true;
 	}
-
-	public void StartValidator() {
-		transform.parent.BroadcastMessage ("ValidateRadius");
+	public void StartValidator(){
+		l.transform.BroadcastMessage ("ValidateRadius");
 	}
 	public void ValidateRadius(){
-		Queue<GemScript> inside = GemChain ("inside");
-		Queue<GemScript> outside = GemChain ("outside");
+		if (Destroyed == false) {
+			Queue<GemScript> inside = GemChain ("inside");
+			Queue<GemScript> outside = GemChain ("outside");
 
-		// As same object is counted twice
-		if (outside.Count + inside.Count >= 4) {
+			// As same object is counted twice
+			if (outside.Count + inside.Count >= 4) {
 
-			foreach (GemScript i in outside) {
-				i.transform.Translate (new Vector3(0,0,-20));
-				Destroy (i.gameObject);
-			}
-			foreach (GemScript i in inside) {
-				i.transform.Translate (new Vector3(0,0,-20));
-				Destroy (i.gameObject);
+				foreach (GemScript i in outside) {
+					i.Destroyed = true;
+					i.transform.Translate (new Vector3(0,0,-20));
+					//Destroy (i.gameObject);
+				}
+				foreach (GemScript i in inside) {
+					i.Destroyed = true;
+					i.transform.Translate (new Vector3(0,0,-20));
+					//Destroy (i.gameObject);
+				}
 			}
 		}
 	}
@@ -89,11 +95,11 @@ public class GemScript : MonoBehaviour {
 
 			foreach (GemScript i in anti) {
 				i.transform.Translate (new Vector3(0,0,-20));
-				Destroy (i.gameObject);
+//				Destroy (i.gameObject);
 			}
 			foreach (GemScript i in clock) {
 				i.transform.Translate (new Vector3(0,0,-20));
-				Destroy (i.gameObject);
+//				Destroy (i.gameObject);
 			}
 		}
 	}

@@ -6,19 +6,23 @@ public class CollidorScript : MonoBehaviour {
 	
 	public GemScript g;
 	public List<GemScript> handsup;
+	public bool FirstRunSinceGravity;
 
 	public bool FreeFall;
 
 	public void FreeFallController(string s){
 		if (s == "Start") {
 			if (!FreeFall) {
+				g.l.b.AddToChangeList (g);
 				FreeFall = true;
+				print ("lock "+g.name);
 				g.l.b.Equilibrium++;
 			}
 		} 
 		if(s == "Stop") {
 			if (FreeFall) {
 				FreeFall = false;
+				print ("unlock "+g.name);
 				g.l.b.Equilibrium--;
 			}
 		}
@@ -27,6 +31,7 @@ public class CollidorScript : MonoBehaviour {
 	void Start(){
 		if (name == "inside") {
 			FreeFall = false;
+			FirstRunSinceGravity = false;
 			StartCoroutine (Gravity ());
 		}
 	}
@@ -41,15 +46,26 @@ public class CollidorScript : MonoBehaviour {
 		}
 	}
 	public IEnumerator Gravity(){
-		while (true) {
-			if (g.l.layer != 0 && !g.l.b.FreezeGravity && handsup.Count == 0) {
-				FreeFallController ("Start");
-				g.FallDown ();
+		while (g.l.layer != 0 && g.Destroyed == false) {
+			if (g.l.b.Gravity == true) {
+				if (FirstRunSinceGravity == true) {
+					FirstRunSinceGravity = false;
+					yield return new WaitForFixedUpdate ();
+				} else {
+					if (handsup.Count == 0) {
+						FreeFallController ("Start");
+						g.FallDown ();
+					} else {
+						FreeFallController ("Stop");
+					}
+				}
 			} else {
-				FreeFallController ("Stop");
+				FirstRunSinceGravity = true;
 			}
-			yield return new WaitForSeconds(0.1f);
+			yield return new WaitForFixedUpdate();
 		}
+		// when it falls to layer 0, equilibrium value needs to be reduced as it quits out of the loop.
+		FreeFallController ("Stop");
 	}
 
 	public void AddToHandsUp(GemScript g){
