@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class LayerScript : MonoBehaviour {
 
@@ -25,6 +26,7 @@ public class LayerScript : MonoBehaviour {
 		o.ChangeTo (this);
 		o.GetComponent<Renderer> ().material = randomPicker<Material>(materials);
 		o.color = o.GetComponent<Renderer> ().material.name;
+		o.collidors = new Dictionary<string, CollidorScript>();
 		o.AddCollidors ();
 		o.transform.Rotate (0.0f, 0.0f, gemDegrees * i); 
 		o.PlaceCollidors ();

@@ -9,7 +9,6 @@ public class BoardScript : MonoBehaviour {
 	public bool Gravity;
 	public int Equilibrium;
 	public List<GemScript> changeList;
-	public LayerScript InputLayer;
 	public bool FirstRunSinceGravity;
 
 	public void AddToChangeList(GemScript a){
@@ -43,11 +42,19 @@ public class BoardScript : MonoBehaviour {
 					yield return new WaitForFixedUpdate();	
 				} else {
 					if (changeList.Count!=0 && Equilibrium == 0) {
-						if (InputLayer != null) {
-							InputLayer.transform.BroadcastMessage ("ValidateRadius");
-
-//							changeList[0].ValidateRadius();
-							InputLayer = null;
+						while (changeList.Count != 0) {
+							List<GemScript> temp = new List<GemScript> ();
+							changeList [0].ugfv = false;
+							changeList [0].ugfh = false;
+							temp.Add (changeList [0]);
+							FormCollection (changeList [0], temp);
+							if (temp.Count != 1) {
+								foreach (GemScript i in temp) {
+									print (i.name);
+								}
+								print ("-----Group OVER----");
+								FormGroup (temp);
+							}
 						}
 						changeList =  new List<GemScript> ();
 						yield return new WaitForFixedUpdate();	
@@ -60,9 +67,75 @@ public class BoardScript : MonoBehaviour {
 			yield return new WaitForFixedUpdate();	
 		}
 	}
-//	void FixedUpdate(){
-//		
-//	}
+
+	List<GemScript> FormCollection(GemScript inputGem,List<GemScript> result){
+
+		if (changeList.Contains (inputGem)) {
+			changeList.Remove (inputGem);
+		}
+
+		int lastIndex = result.Count;
+		List<GemScript> radius = inputGem.GemChain ("radius",new List<GemScript>());
+		List<GemScript> circumference = inputGem.GemChain ("circumference",new List<GemScript>());
+		if(radius != null){
+			radius.Remove(inputGem);
+			foreach (GemScript i in radius) {
+				if (!result.Contains (i)) {
+					i.ugfv = false;
+					i.ugfh = false;
+					result.Add (i);
+				}
+			}
+		}
+		if(circumference != null){
+			circumference.Remove(inputGem);
+			foreach (GemScript i in circumference) {
+				if (!result.Contains (i)) {
+					i.ugfv = false;
+					i.ugfh = false;
+					result.Add (i);
+				}
+			}
+		}
+		if (lastIndex != result.Count) {
+			for(int j=lastIndex; j<result.Count;j++){
+				FormCollection (result [j], result);
+			}
+		}
+		
+		return result;
+	}
+	void FormGroup(List<GemScript> group){
+		List<List<GemScript>> uniqueGroups = new List<List<GemScript>>();
+
+		foreach (GemScript j in group) {
+			if (!j.ugfv) {
+				List<GemScript> radius = j.GemChain ("radius",new List<GemScript>());
+				if (radius != null) {
+					uniqueGroups.Add (radius);
+					foreach (GemScript i in radius) {
+						i.ugfv = true;	
+					}
+				}
+
+			}
+			if (!j.ugfh) {
+				List<GemScript> circumference = j.GemChain ("circumference",new List<GemScript>());
+				if (circumference != null) {
+					uniqueGroups.Add (circumference);
+					foreach (GemScript i in circumference) {
+						i.ugfh = true;	
+					}
+				}
+			}
+		}
+		foreach (List<GemScript> k in uniqueGroups) {
+			foreach (GemScript l in k) {
+				print (l.name);
+			}
+			print ("new group");
+		}
+	}
 	LayerScript AddLayer(int l){
 		LayerScript newLayer = ((GameObject)Instantiate(Layer, new Vector3(0, 0, 0), Quaternion.identity)).GetComponent<LayerScript>();
 		newLayer.name = "Layer"+l;

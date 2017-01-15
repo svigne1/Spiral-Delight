@@ -15,14 +15,14 @@ public class CollidorScript : MonoBehaviour {
 			if (!FreeFall) {
 				g.l.b.AddToChangeList (g);
 				FreeFall = true;
-				print ("lock "+g.name);
+//				print ("lock "+g.name);
 				g.l.b.Equilibrium++;
 			}
 		} 
 		if(s == "Stop") {
 			if (FreeFall) {
 				FreeFall = false;
-				print ("unlock "+g.name);
+//				print ("unlock "+g.name);
 				g.l.b.Equilibrium--;
 			}
 		}

@@ -5,8 +5,14 @@ using System.Collections.Generic;
 public class GemScript : MonoBehaviour {
 	public LayerScript l;
 	public GameObject collidor;
+	public Dictionary<string, CollidorScript> collidors;
 	public bool Destroyed;
 	public int i;
+
+	// unique group formation vertical.
+	public bool ugfv;
+	// unique group formation horizontal.
+	public bool ugfh;
 
 	// Taken from this answer http://answers.unity3d.com/answers/177525/view.html
 	public float sensitivity;
@@ -28,7 +34,9 @@ public class GemScript : MonoBehaviour {
 	void OnMouseDown()
 	{
 		if (l.b.Equilibrium == 0) {
-			l.b.InputLayer = l;
+//			foreach (Transform child in l.transform) {
+//				l.b.AddToChangeList (child.GetComponent<GemScript>());
+//			}
 			l.b.AddToChangeList (this);
 			l.b.Gravity = false;
 			isRotating = true;
@@ -63,22 +71,16 @@ public class GemScript : MonoBehaviour {
 		onMouseRelease = true;
 	}
 	public void StartValidator(){
-		l.transform.BroadcastMessage ("ValidateRadius");
+		l.transform.BroadcastMessage ("Validate");
 	}
-	public void ValidateRadius(){
+	public void Validate(string direction){
 		if (Destroyed == false) {
-			Queue<GemScript> inside = GemChain ("inside");
-			Queue<GemScript> outside = GemChain ("outside");
+			List<GemScript> chain = new List<GemScript> ();
+			GemChain (direction,chain);
 
-			// As same object is counted twice
-			if (outside.Count + inside.Count >= 4) {
+			if (chain!=null) {
 
-				foreach (GemScript i in outside) {
-					i.Destroyed = true;
-					i.transform.Translate (new Vector3(0,0,-20));
-					//Destroy (i.gameObject);
-				}
-				foreach (GemScript i in inside) {
+				foreach (GemScript i in chain) {
 					i.Destroyed = true;
 					i.transform.Translate (new Vector3(0,0,-20));
 					//Destroy (i.gameObject);
@@ -86,23 +88,31 @@ public class GemScript : MonoBehaviour {
 			}
 		}
 	}
-	public void ValidateCircumference(){
-		Queue<GemScript> anti = GemChain ("anti");
-		Queue<GemScript> clock = GemChain ("clock");
+	public List<GemScript> GemChain(string direction,List<GemScript> answer){
 
-		// As same object is counted twice
-		if (clock.Count + anti.Count >= 4) {
-
-			foreach (GemScript i in anti) {
-				i.transform.Translate (new Vector3(0,0,-20));
-//				Destroy (i.gameObject);
-			}
-			foreach (GemScript i in clock) {
-				i.transform.Translate (new Vector3(0,0,-20));
-//				Destroy (i.gameObject);
-			}
+		if(direction == "radius"){
+			Chain ("inside",answer);
+			answer.RemoveAt (0);
+			Chain ("outside", answer);
+		}else {
+			Chain ("clock", answer);
+			answer.RemoveAt (0);
+			Chain ("anti", answer);
 		}
+		if (answer.Count < 3)
+			answer = null;
+		
+		return answer;
 	}
+	public List<GemScript> Chain(string collidorName,List<GemScript> answer){
+		answer.Add (this);
+		CollidorScript c = collidors[collidorName];
+		if(c.handsup.Count != 0 && c.handsup[0].color == color){
+			return c.handsup[0].Chain (collidorName,answer);
+		}
+		return answer;
+	}
+
 	public void FallDown()
 	{
 		ChangeTo (l.inner);
@@ -112,7 +122,7 @@ public class GemScript : MonoBehaviour {
 	{
 		if (tolayer != null) {
 			l = tolayer;
-			// For Debugging .. not changing name
+			// For Debugging .. i'm not changing name as it changes layers.
 			if(name=="Gem(Clone)")name = "L" + l.layer + "N" + l.transform.childCount;
 			GetComponent<MeshFilter>().mesh = tolayer.mesh[tolayer.layer];
 			GetComponent<MeshCollider>().sharedMesh = tolayer.mesh[tolayer.layer];
@@ -140,7 +150,7 @@ public class GemScript : MonoBehaviour {
 	}
 
 	public GemScript FindNeigbhour(string side){
-		return transform.Find (side).GetComponent<CollidorScript> ().handsup[0];
+		return collidors[side].handsup[0];
 	}
 
 	public void PlaceCollidors(){
@@ -148,23 +158,6 @@ public class GemScript : MonoBehaviour {
 			child.GetComponent<CollidorScript> ().PlaceCollidor ();
 		}
 	}
-	Queue<GemScript> GemChain(string collidorName){
-		Queue<GemScript> answer;
-		foreach (Transform child in transform) {
-			CollidorScript collidor = child.GetComponent<CollidorScript> ();
-			if (collidor.name == collidorName && collidor.handsup.Count != 0) {
-				if (collidor.handsup[0].color == color) {
-					answer = collidor.handsup[0].GemChain (collidorName);
-					answer.Enqueue (this);
-					return answer;
-				} 
-			}
-		}
-		answer = new Queue<GemScript> ();
-		answer.Enqueue (this);
-		return answer;
-	}
-
 	public void AddCollidors(){
 
 		GameObject[] c = new GameObject[4];
@@ -173,6 +166,7 @@ public class GemScript : MonoBehaviour {
 			c [k].name = collidorNames[k];
 			c [k].transform.parent = transform;
 			c [k].GetComponent<CollidorScript> ().g = this;
+			collidors.Add (collidorNames[k],c[k].GetComponent<CollidorScript>());
 		}
 	}
 
