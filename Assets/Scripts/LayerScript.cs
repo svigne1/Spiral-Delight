@@ -19,11 +19,10 @@ public class LayerScript : MonoBehaviour {
 	// Skipping first part 0.094f+ 0.08254f
 	public float gemOrigin = 0.17654f;
 
-	public GemScript AddGem(int i){
-		GemScript o = ((GameObject)Instantiate(gem, new Vector3(0, 0, 0), Quaternion.identity)).GetComponent<GemScript>();
+	public GemConfig AddGem(int i){
+		GemConfig o = ((GameObject)Instantiate(gem, new Vector3(0, 0, 0), Quaternion.identity)).GetComponent<GemConfig>();
 		o.i = i;
-		o.gemDegrees = gemDegrees;
-		o.ChangeTo (this);
+		o.GetComponent<GemGravity>(). ChangeTo (this);
 		o.GetComponent<Renderer> ().material = randomPicker<Material>(materials);
 		o.color = o.GetComponent<Renderer> ().material.name;
 		o.collidors = new Dictionary<string, CollidorScript>();

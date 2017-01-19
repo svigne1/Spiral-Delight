@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class BoardScript : MonoBehaviour {
 
@@ -8,10 +9,10 @@ public class BoardScript : MonoBehaviour {
 	public GameObject Layer;
 	public bool Gravity;
 	public int Equilibrium;
-	public List<GemScript> changeList;
+	public static List<GemLogic> changeList;
 	public bool FirstRunSinceGravity;
 
-	public void AddToChangeList(GemScript a){
+	public void AddToChangeList(GemLogic a){
 		if (!changeList.Contains (a))
 			changeList.Add (a);
 	}
@@ -27,7 +28,7 @@ public class BoardScript : MonoBehaviour {
 			inner = newLayer;
 		}
 		Gravity = true;
-		changeList = new List<GemScript> ();
+		changeList = new List<GemLogic> ();
 		FirstRunSinceGravity = false;
 		Equilibrium = 0;
 		StartCoroutine (BoardValidator ());
@@ -43,20 +44,13 @@ public class BoardScript : MonoBehaviour {
 				} else {
 					if (changeList.Count!=0 && Equilibrium == 0) {
 						while (changeList.Count != 0) {
-							List<GemScript> temp = new List<GemScript> ();
-							changeList [0].ugfv = false;
-							changeList [0].ugfh = false;
-							temp.Add (changeList [0]);
-							FormCollection (changeList [0], temp);
-							if (temp.Count != 1) {
-								foreach (GemScript i in temp) {
-									print (i.name);
-								}
-								print ("-----Group OVER----");
-								FormGroup (temp);
-							}
+							Collection s = new Collection ();
+							s.FormCollection (changeList [0]);
+							print ("----------------------From Here");
+							s.Print ();
+//							changeList = new List<GemLogic> ();
 						}
-						changeList =  new List<GemScript> ();
+						BroadcastMessage ("ResetProcess");
 						yield return new WaitForFixedUpdate();	
 						yield return new WaitForFixedUpdate();	
 					}
@@ -68,74 +62,65 @@ public class BoardScript : MonoBehaviour {
 		}
 	}
 
-	List<GemScript> FormCollection(GemScript inputGem,List<GemScript> result){
+	public class Collection{
 
-		if (changeList.Contains (inputGem)) {
-			changeList.Remove (inputGem);
+		public Dictionary<string, List<GemGroup>> answer;
+
+		public void Print(){
+			print ("radius = "+answer["radius"].Count);
+			print ("circumference = "+answer["circumference"].Count);
+//			print ("---------radius--------");
+//			foreach (GemGroup s in answer["radius"]) {
+//				print ("------");
+//				s.Print ();
+//			}
+//			print ("---------circumference----------");
+//			foreach (GemGroup s in answer["circumference"]) {
+//				print ("------");
+//				s.Print ();
+//			}
 		}
 
-		int lastIndex = result.Count;
-		List<GemScript> radius = inputGem.GemChain ("radius",new List<GemScript>());
-		List<GemScript> circumference = inputGem.GemChain ("circumference",new List<GemScript>());
-		if(radius != null){
-			radius.Remove(inputGem);
-			foreach (GemScript i in radius) {
-				if (!result.Contains (i)) {
-					i.ugfv = false;
-					i.ugfh = false;
-					result.Add (i);
-				}
-			}
+		public Collection(){
+			answer = new Dictionary<string, List<GemGroup>>();
+			answer["radius"] = new List<GemGroup>();
+			answer["circumference"] = new List<GemGroup>();
 		}
-		if(circumference != null){
-			circumference.Remove(inputGem);
-			foreach (GemScript i in circumference) {
-				if (!result.Contains (i)) {
-					i.ugfv = false;
-					i.ugfh = false;
-					result.Add (i);
-				}
-			}
+		public void AddToGroup(GemGroup s) {
+			answer[s.direction].Add(s);
 		}
-		if (lastIndex != result.Count) {
-			for(int j=lastIndex; j<result.Count;j++){
-				FormCollection (result [j], result);
-			}
-		}
-		
-		return result;
-	}
-	void FormGroup(List<GemScript> group){
-		List<List<GemScript>> uniqueGroups = new List<List<GemScript>>();
+		public void FormCollection(GemLogic inputGem) {
+			if (changeList.Contains (inputGem)) 
+				changeList.Remove (inputGem);
 
-		foreach (GemScript j in group) {
-			if (!j.ugfv) {
-				List<GemScript> radius = j.GemChain ("radius",new List<GemScript>());
-				if (radius != null) {
-					uniqueGroups.Add (radius);
-					foreach (GemScript i in radius) {
-						i.ugfv = true;	
+			List<string> processList = new List<string> ();
+			if (!inputGem.process ["radius"])
+				processList.Add ("radius");
+			if (!inputGem.process ["circumference"])
+				processList.Add ("circumference");
+
+			foreach (string i in processList) {
+				GemGroup r = inputGem.GemGroup (i);
+				if (r != null) {
+					AddToGroup (r);
+					foreach (GemLogic s in r.negative) {
+						r.SetReferenceFor (s);
 					}
-				}
-
-			}
-			if (!j.ugfh) {
-				List<GemScript> circumference = j.GemChain ("circumference",new List<GemScript>());
-				if (circumference != null) {
-					uniqueGroups.Add (circumference);
-					foreach (GemScript i in circumference) {
-						i.ugfh = true;	
+					foreach (GemLogic s in r.positive) {
+						r.SetReferenceFor (s);
+					}
+					foreach (GemLogic s in r.negative) {
+						FormCollection (s);
+					}
+					foreach (GemLogic s in r.positive) {
+						FormCollection (s);
 					}
 				}
 			}
 		}
-		foreach (List<GemScript> k in uniqueGroups) {
-			foreach (GemScript l in k) {
-				print (l.name);
-			}
-			print ("new group");
-		}
+
 	}
+
 	LayerScript AddLayer(int l){
 		LayerScript newLayer = ((GameObject)Instantiate(Layer, new Vector3(0, 0, 0), Quaternion.identity)).GetComponent<LayerScript>();
 		newLayer.name = "Layer"+l;

@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class CollidorScript : MonoBehaviour {
-	
-	public GemScript g;
-	public List<GemScript> handsup;
+
+	public GemLogic g;
+	public List<GemLogic> handsup;
 	public bool FirstRunSinceGravity;
 
 	public bool FreeFall;
@@ -13,17 +13,15 @@ public class CollidorScript : MonoBehaviour {
 	public void FreeFallController(string s){
 		if (s == "Start") {
 			if (!FreeFall) {
-				g.l.b.AddToChangeList (g);
+				g.c.l.b.AddToChangeList (g);
 				FreeFall = true;
-//				print ("lock "+g.name);
-				g.l.b.Equilibrium++;
+				g.c.l.b.Equilibrium++;
 			}
-		} 
+		}
 		if(s == "Stop") {
 			if (FreeFall) {
 				FreeFall = false;
-//				print ("unlock "+g.name);
-				g.l.b.Equilibrium--;
+				g.c.l.b.Equilibrium--;
 			}
 		}
 	}
@@ -37,24 +35,24 @@ public class CollidorScript : MonoBehaviour {
 	}
 	void OnTriggerEnter (Collider o) {
 		if (o.tag == "Gem" && o.name != g.name) {
-			AddToHandsUp(o.GetComponent<GemScript>());
+			AddToHandsUp(o.GetComponent<GemLogic>());
 		}
 	}
 	void OnTriggerExit (Collider o) {
 		if (o.tag == "Gem") {
-			RemoveFromHandsUp (o.GetComponent<GemScript> ());
+			RemoveFromHandsUp (o.GetComponent<GemLogic> ());
 		}
 	}
 	public IEnumerator Gravity(){
-		while (g.l.layer != 0 && g.Destroyed == false) {
-			if (g.l.b.Gravity == true) {
+		while (g.c.l.layer != 0 && g.c.Destroyed == false) {
+			if (g.c.l.b.Gravity == true) {
 				if (FirstRunSinceGravity == true) {
 					FirstRunSinceGravity = false;
 					yield return new WaitForFixedUpdate ();
 				} else {
 					if (handsup.Count == 0) {
 						FreeFallController ("Start");
-						g.FallDown ();
+						g.gy.FallDown ();
 					} else {
 						FreeFallController ("Stop");
 					}
@@ -68,34 +66,34 @@ public class CollidorScript : MonoBehaviour {
 		FreeFallController ("Stop");
 	}
 
-	public void AddToHandsUp(GemScript g){
+	public void AddToHandsUp(GemLogic g){
 		handsup.Add (g);
 	}
-	public void RemoveFromHandsUp(GemScript g){
+	public void RemoveFromHandsUp(GemLogic g){
 		handsup.Remove (g);
 	}
 	public void PlaceCollidor(){
 		transform.position = new Vector3(0, 0, 0);
-		float standard = -g.l.gemOrigin - g.l.layer * g.l.gemLength;
+		float standard = -g.c.l.gemOrigin - g.c.l.layer * g.c.l.gemLength;
 		float x_tan = 0f, y_tan = 0f;
 		switch (name)
 		{
 		case "clock":
-			transform.Translate (new Vector3 (standard-g.l.gemLength / 2, 0, 0));
+			transform.Translate (new Vector3 (standard-g.c.l.gemLength / 2, 0, 0));
 			break;
 		case "outside":
-			x_tan = -standard + g.l.gemLength;
-			y_tan = g.l.tanGemDegrees * x_tan;
-			transform.Translate (new Vector3(standard-g.l.gemLength +0.01f,-y_tan/2,0));
+			x_tan = -standard + g.c.l.gemLength;
+			y_tan = g.c.l.tanGemDegrees * x_tan;
+			transform.Translate (new Vector3(standard-g.c.l.gemLength +0.01f,-y_tan/2,0));
 			break;
 		case "anti":
-			x_tan = (-standard + g.l.gemLength / 2);
-			y_tan = g.l.tanGemDegrees * x_tan;
-			transform.Translate (new Vector3(standard-g.l.gemLength/2,-y_tan,0));
+			x_tan = (-standard + g.c.l.gemLength / 2);
+			y_tan = g.c.l.tanGemDegrees * x_tan;
+			transform.Translate (new Vector3(standard-g.c.l.gemLength/2,-y_tan,0));
 			break;
 		case "inside":
 			x_tan = -standard;
-			y_tan = g.l.tanGemDegrees * x_tan;
+			y_tan = g.c.l.tanGemDegrees * x_tan;
 			transform.Translate (new Vector3(standard +0.01f,-y_tan/2,0));
 			break;
 
