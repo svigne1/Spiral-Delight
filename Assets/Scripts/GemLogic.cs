@@ -6,19 +6,19 @@ using System;
 
 public class GemGroup{
 	public GemLogic center;
-	public List<GemLogic> positive;
-	public List<GemLogic> negative;
+	public List<GemLogic> right;
+	public List<GemLogic> left;
 	public string direction;
 
 	public void RemoveCenter(){
-		positive.Remove(center);
-		negative.Remove(center);
+		right.Remove(center);
+		left.Remove(center);
 	}
 	public void Print(){
 		Debug.Log ("center "+center.name);
-		foreach (GemLogic s in positive)
+		foreach (GemLogic s in right)
 			Debug.Log (s.name);
-		foreach (GemLogic s in negative)
+		foreach (GemLogic s in left)
 			Debug.Log (s.name);
 	}
 	public void SetReferenceFor(GemLogic a){
@@ -44,9 +44,10 @@ public class GemLogic : MonoBehaviour {
 	public void ResetProcess(){
 		process["radius"] = false;
 		process["circumference"] = false;
+		groups = new Dictionary<string, GemGroup>();
 	}
 
-	public GemGroup GemGroup(string direction){
+	public GemGroup getGemGroup(string direction){
 		GemGroup answer = new GemGroup();
 		process [direction] = true;
 
@@ -58,17 +59,17 @@ public class GemLogic : MonoBehaviour {
 			answer.direction = direction;
 
 			if(direction == "radius"){
-				answer.negative = Chain ("inside",new List<GemLogic>());
-				answer.positive = Chain ("outside", new List<GemLogic>());
+				answer.left = Chain ("inside",new List<GemLogic>());
+				answer.right = Chain ("outside", new List<GemLogic>());
 			} else if(direction == "circumference"){
-				answer.positive = Chain ("clock", new List<GemLogic>());
-				answer.negative = Chain ("anti", new List<GemLogic>());
+				answer.right = Chain ("clock", new List<GemLogic>());
+				answer.left = Chain ("anti", new List<GemLogic>());
 			}
 
 			answer.center = this;
 			answer.RemoveCenter ();
 
-			if (answer.negative.Count + answer.positive.Count + 1 < 3)
+			if (answer.left.Count + answer.right.Count + 1 < 3)
 				answer = null;
 			
 			groups [direction] = answer;

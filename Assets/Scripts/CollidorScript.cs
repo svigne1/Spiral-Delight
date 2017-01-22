@@ -6,7 +6,6 @@ public class CollidorScript : MonoBehaviour {
 
 	public GemLogic g;
 	public List<GemLogic> handsup;
-	public bool FirstRunSinceGravity;
 
 	public bool FreeFall;
 
@@ -29,7 +28,6 @@ public class CollidorScript : MonoBehaviour {
 	void Start(){
 		if (name == "inside") {
 			FreeFall = false;
-			FirstRunSinceGravity = false;
 			StartCoroutine (Gravity ());
 		}
 	}
@@ -46,19 +44,12 @@ public class CollidorScript : MonoBehaviour {
 	public IEnumerator Gravity(){
 		while (g.c.l.layer != 0 && g.c.Destroyed == false) {
 			if (g.c.l.b.Gravity == true) {
-				if (FirstRunSinceGravity == true) {
-					FirstRunSinceGravity = false;
-					yield return new WaitForFixedUpdate ();
+				if (handsup.Count == 0) {
+					FreeFallController ("Start");
+					g.gy.FallDown ();
 				} else {
-					if (handsup.Count == 0) {
-						FreeFallController ("Start");
-						g.gy.FallDown ();
-					} else {
-						FreeFallController ("Stop");
-					}
+					FreeFallController ("Stop");
 				}
-			} else {
-				FirstRunSinceGravity = true;
 			}
 			yield return new WaitForFixedUpdate();
 		}

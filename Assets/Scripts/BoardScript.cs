@@ -39,20 +39,15 @@ public class BoardScript : MonoBehaviour {
 			if (Gravity == true) {
 				if(FirstRunSinceGravity == true){
 					FirstRunSinceGravity = false;
-					yield return new WaitForFixedUpdate();	
-					yield return new WaitForFixedUpdate();	
 				} else {
 					if (changeList.Count!=0 && Equilibrium == 0) {
 						while (changeList.Count != 0) {
 							Collection s = new Collection ();
-							s.FormCollection (changeList [0]);
-							print ("----------------------From Here");
+							s.FormCollection (changeList [0]); 
 							s.Print ();
-//							changeList = new List<GemLogic> ();
+							changeList = new List<GemLogic> ();
 						}
 						BroadcastMessage ("ResetProcess");
-						yield return new WaitForFixedUpdate();	
-						yield return new WaitForFixedUpdate();	
 					}
 				}
 			} else {
@@ -69,16 +64,16 @@ public class BoardScript : MonoBehaviour {
 		public void Print(){
 			print ("radius = "+answer["radius"].Count);
 			print ("circumference = "+answer["circumference"].Count);
-//			print ("---------radius--------");
-//			foreach (GemGroup s in answer["radius"]) {
-//				print ("------");
-//				s.Print ();
-//			}
-//			print ("---------circumference----------");
-//			foreach (GemGroup s in answer["circumference"]) {
-//				print ("------");
-//				s.Print ();
-//			}
+			print ("---------radius--------");
+			foreach (GemGroup s in answer["radius"]) {
+				print ("------");
+				s.Print ();
+			}
+			print ("---------circumference----------");
+			foreach (GemGroup s in answer["circumference"]) {
+				print ("------");
+				s.Print ();
+			}
 		}
 
 		public Collection(){
@@ -99,22 +94,26 @@ public class BoardScript : MonoBehaviour {
 			if (!inputGem.process ["circumference"])
 				processList.Add ("circumference");
 
+			List<GemGroup> temp = new List<GemGroup> ();
 			foreach (string i in processList) {
-				GemGroup r = inputGem.GemGroup (i);
+				GemGroup r = inputGem.getGemGroup (i);
 				if (r != null) {
+					temp.Add (r);
 					AddToGroup (r);
-					foreach (GemLogic s in r.negative) {
+					foreach (GemLogic s in r.left) {
 						r.SetReferenceFor (s);
 					}
-					foreach (GemLogic s in r.positive) {
+					foreach (GemLogic s in r.right) {
 						r.SetReferenceFor (s);
 					}
-					foreach (GemLogic s in r.negative) {
-						FormCollection (s);
-					}
-					foreach (GemLogic s in r.positive) {
-						FormCollection (s);
-					}
+				}
+			}
+			foreach (GemGroup j in temp) {
+				foreach (GemLogic s in j.left) {
+					FormCollection (s);
+				}
+				foreach (GemLogic s in j.right) {
+					FormCollection (s);
 				}
 			}
 		}
