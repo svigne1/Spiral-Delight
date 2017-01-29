@@ -30,18 +30,13 @@ public class GemGroup{
 		count = 1+ right.Count+ left.Count;
 	}
 	public void selfDestruct(){
-		center.c.Destroyed = true;
-		center.transform.Translate (new Vector3(0,0,-20));
+		center.selfDestruct ();
 
 		foreach (GemLogic i in left) {
-			i.c.Destroyed = true;
-			i.transform.Translate (new Vector3(0,0,-20));
-			//Destroy (i.gameObject);
+			i.selfDestruct ();
 		}
 		foreach (GemLogic i in right) {
-			i.c.Destroyed = true;
-			i.transform.Translate (new Vector3(0,0,-20));
-			//Destroy (i.gameObject);
+			i.selfDestruct ();
 		}
 	}
 }
@@ -65,7 +60,11 @@ public class GemLogic : MonoBehaviour {
 		process["circumference"] = false;
 		groups = new Dictionary<string, GemGroup>();
 	}
-
+	public void selfDestruct(){
+		c.Destroyed = true;
+		transform.Translate (new Vector3(0,0,-20));
+//		Destroy (gameObject);
+	}
 	public GemGroup getGemGroup(string direction){
 		GemGroup answer = new GemGroup();
 		process [direction] = true;

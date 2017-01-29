@@ -41,12 +41,14 @@ public class BoardScript : MonoBehaviour {
 					FirstRunSinceGravity = false;
 				} else {
 					if (changeList.Count!=0 && Equilibrium == 0) {
+						List<Collection> all = new List<Collection> ();
 						while (changeList.Count != 0) {
 							Collection s = new Collection ();
 							s.FormCollection (changeList [0]); 
-//							s.Print ();
-							s.DestroyLogicOne ();
-//							changeList = new List<GemLogic> ();
+							all.Add (s);
+						}
+						foreach (Collection item in all){
+							item.DestroyLogicOne ();
 						}
 						BroadcastMessage ("ResetProcess");
 					}
