@@ -24,7 +24,9 @@ public class GemInput : MonoBehaviour {
 	{
 		if (c.l.b.Equilibrium == 0) {
 			foreach (Transform child in c.l.transform) {
-				c.l.b.AddToChangeList (child.GetComponent<GemLogic>());
+				GemLogic temp = child.GetComponent<GemLogic> ();
+				if (!temp.c.Destroyed)
+					c.l.b.AddToChangeList (child.GetComponent<GemLogic>());
 			}
 			c.l.b.AddToChangeList (GetComponent<GemLogic>());
 			c.l.b.Gravity = false;
