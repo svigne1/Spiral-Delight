@@ -44,8 +44,9 @@ public class BoardScript : MonoBehaviour {
 						while (changeList.Count != 0) {
 							Collection s = new Collection ();
 							s.FormCollection (changeList [0]); 
-							s.Print ();
-							changeList = new List<GemLogic> ();
+//							s.Print ();
+							s.DestroyLogicOne ();
+//							changeList = new List<GemLogic> ();
 						}
 						BroadcastMessage ("ResetProcess");
 					}
@@ -76,6 +77,29 @@ public class BoardScript : MonoBehaviour {
 			}
 		}
 
+		public void DestroyLogicOne(){
+			Dictionary<string, int> count = new Dictionary<string,int>();
+			count ["circumference"] = 0;
+			count ["radius"] = 0;
+			
+			foreach (GemGroup s in answer["circumference"]) {
+				count["circumference"]+=s.count;
+			}
+			foreach (GemGroup s in answer["radius"]) {
+				count["radius"]+=s.count;
+			}
+			if (count ["radius"] >= count ["circumference"]) {
+				HelpDestroyGroup (answer["radius"]);
+			} else {
+				HelpDestroyGroup (answer["circumference"]);
+			}
+				
+		}
+		public void HelpDestroyGroup(List<GemGroup> a){
+			foreach (GemGroup s in a) {
+				s.selfDestruct ();
+			}
+		}
 		public Collection(){
 			answer = new Dictionary<string, List<GemGroup>>();
 			answer["radius"] = new List<GemGroup>();

@@ -9,6 +9,7 @@ public class GemGroup{
 	public List<GemLogic> right;
 	public List<GemLogic> left;
 	public string direction;
+	public int count;
 
 	public void RemoveCenter(){
 		right.Remove(center);
@@ -24,6 +25,24 @@ public class GemGroup{
 	public void SetReferenceFor(GemLogic a){
 			a.groups [direction] = this;
 			a.process [direction] = true;
+	}
+	public void doCount(){
+		count = 1+ right.Count+ left.Count;
+	}
+	public void selfDestruct(){
+		center.c.Destroyed = true;
+		center.transform.Translate (new Vector3(0,0,-20));
+
+		foreach (GemLogic i in left) {
+			i.c.Destroyed = true;
+			i.transform.Translate (new Vector3(0,0,-20));
+			//Destroy (i.gameObject);
+		}
+		foreach (GemLogic i in right) {
+			i.c.Destroyed = true;
+			i.transform.Translate (new Vector3(0,0,-20));
+			//Destroy (i.gameObject);
+		}
 	}
 }
 
@@ -71,6 +90,8 @@ public class GemLogic : MonoBehaviour {
 
 			if (answer.left.Count + answer.right.Count + 1 < 3)
 				answer = null;
+			else
+				answer.doCount ();
 			
 			groups [direction] = answer;
 		}

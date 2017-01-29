@@ -23,9 +23,9 @@ public class GemInput : MonoBehaviour {
 	void OnMouseDown()
 	{
 		if (c.l.b.Equilibrium == 0) {
-//			foreach (Transform child in l.transform) {
-//				l.b.AddToChangeList (child.GetComponent<GemScript>());
-//			}
+			foreach (Transform child in c.l.transform) {
+				c.l.b.AddToChangeList (child.GetComponent<GemLogic>());
+			}
 			c.l.b.AddToChangeList (GetComponent<GemLogic>());
 			c.l.b.Gravity = false;
 			isRotating = true;
@@ -80,20 +80,4 @@ public class GemInput : MonoBehaviour {
 			l.Rotate(new Vector3(0,0,-extra));
 		}
 	}
-
-//	public void Validate(string direction){
-//		if (c.Destroyed == false) {
-//			List<GemScript> chain = new List<GemScript> ();
-////			GemChain (direction,chain);
-//
-//			if (chain!=null) {
-//
-//				foreach (GemScript i in chain) {
-//					i.Destroyed = true;
-//					i.transform.Translate (new Vector3(0,0,-20));
-//					//Destroy (i.gameObject);
-//				}
-//			}
-//		}
-//	}
 }
